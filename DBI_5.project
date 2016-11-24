@@ -9,14 +9,16 @@
   <Dependencies/>
   <VirtualDirectory Name="src">
     <File Name="main.cpp"/>
-    <File Name="Parser.hpp"/>
     <File Name="Schema.cpp"/>
     <File Name="Schema.hpp"/>
     <File Name="Types.hpp"/>
-    <File Name="Parser.cpp"/>
     <File Name="code_generation.h"/>
     <File Name="code_generation.cpp"/>
     <File Name="helpers.cpp"/>
+    <File Name="Parser_Schema.hpp"/>
+    <File Name="Parser_Schema.cpp"/>
+    <File Name="Parser_Query.h"/>
+    <File Name="Parser_Query.cpp"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>

@@ -3,8 +3,10 @@
 #include <cstdio>
 #include <sstream>
 #include "Schema.hpp"
-#include "Parser.hpp"
+#include "Parser_Schema.hpp"
+#include "Parser_Query.h"
 #include "code_generation.h"
+#include <regex>
 
 using namespace std;
 //extern Table_warehouse warehouse;
@@ -82,20 +84,26 @@ int main(int argc, char* argv[]) {
 		     << argc << endl;
 		return -1;
 	}
-
-	Parser p(argv[1]);
+	
+	Parser_Schema p(argv[1]);
+	
 	try {
 		unique_ptr<Schema> schema = p.parse();
-		
-		ofstream out;
+		string tmp = "";
+		getline(cin, tmp);
+		Parser_Query q(tmp, schema.get());
 
-		string path = string(argv[2],strlen(argv[2])) + "/";
-		string name = string(argv[3],strlen(argv[3]));
+		q.parse();
+		
+		//ofstream out;
+
+		//string path = string(argv[2],strlen(argv[2])) + "/";
+		//string name = string(argv[3],strlen(argv[3]));
 		
 		
-		out.open(path  + name + ".cpp");
-		out << create_query(schema.get());
-		out.close();		
+		//out.open(path  + name + ".cpp");
+		//out << create_query(schema.get());
+		//out.close();		
 		
 	} catch (ParserError& e) {
 		cerr << e.what() << endl;

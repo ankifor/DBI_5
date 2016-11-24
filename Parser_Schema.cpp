@@ -1,4 +1,4 @@
-#include "Parser.hpp"
+#include "Parser_Schema.hpp"
 
 #include <iostream>
 #include <iterator>
@@ -40,7 +40,7 @@ struct NamePredicate {
 	bool operator()(const T& t) const { return t.name == name; }
 };
 
-unique_ptr<Schema> Parser::parse() {
+unique_ptr<Schema> Parser_Schema::parse() {
 	string token;
 	unsigned line = 1;
 	unique_ptr<Schema> s(new Schema());
@@ -93,7 +93,7 @@ static bool isInt(const string& str) {
    return str.find_first_not_of("0123456789") == string::npos;
 }
 
-void Parser::nextToken(unsigned line, const string& token, Schema& schema) {
+void Parser_Schema::nextToken(unsigned line, const string& token, Schema& schema) {
 	if (getenv("DEBUG"))
 		cerr << line << ": " << token << endl;
 	if (token.empty())

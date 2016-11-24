@@ -20,7 +20,7 @@ public:
    }
 };
 
-struct Parser {
+struct Parser_Schema {
 	string fileName;
 	ifstream in;
 	enum class State : unsigned { 
@@ -42,8 +42,8 @@ struct Parser {
 	State state;
 	Schema::Relation* rel;
 	string index_name;
-	Parser(const string& fileName) : fileName(fileName), state(State::Init), rel(nullptr) {}
-	~Parser() {};
+	Parser_Schema(const string& fileName) : fileName(fileName), state(State::Init), rel(nullptr) {}
+	~Parser_Schema() {};
 	unique_ptr<Schema> parse();
 private:
 	void nextToken(unsigned line, const string& token, Schema& s);
