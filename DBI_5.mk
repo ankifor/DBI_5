@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=Andrey Nikiforov
-Date                   :=24/11/16
+Date                   :=29/11/16
 CodeLitePath           :=/home/ankifor/.codelite
 LinkerName             :=/usr/bin/g++
 SharedObjectLinkerName :=/usr/bin/g++ -shared -fPIC
@@ -35,12 +35,12 @@ PreprocessOnlySwitch   :=-E
 ObjectsFileList        :="DBI_5.txt"
 PCHCompileFlags        :=
 MakeDirCommand         :=mkdir -p
-LinkOptions            :=  
+LinkOptions            :=  -rdynamic
 IncludePath            :=  $(IncludeSwitch). $(IncludeSwitch). 
 IncludePCH             := 
 RcIncludePath          := 
-Libs                   := 
-ArLibs                 :=  
+Libs                   := $(LibrarySwitch)rt $(LibrarySwitch)dl 
+ArLibs                 :=  "rt" "dl" 
 LibPath                := $(LibraryPathSwitch). 
 
 ##
@@ -60,7 +60,7 @@ AS       := /usr/bin/as
 ## User defined environment variables
 ##
 CodeLiteDir:=/usr/share/codelite
-Objects0=$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/Schema.cpp$(ObjectSuffix) $(IntermediateDirectory)/code_generation.cpp$(ObjectSuffix) $(IntermediateDirectory)/helpers.cpp$(ObjectSuffix) $(IntermediateDirectory)/Parser_Schema.cpp$(ObjectSuffix) $(IntermediateDirectory)/Parser_Query.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/Schema.cpp$(ObjectSuffix) $(IntermediateDirectory)/code_generation.cpp$(ObjectSuffix) $(IntermediateDirectory)/helpers.cpp$(ObjectSuffix) $(IntermediateDirectory)/Parser_Schema.cpp$(ObjectSuffix) $(IntermediateDirectory)/Parser_Query.cpp$(ObjectSuffix) $(IntermediateDirectory)/schema_1.cpp$(ObjectSuffix) $(IntermediateDirectory)/Types.cpp$(ObjectSuffix) 
 
 
 
@@ -138,6 +138,22 @@ $(IntermediateDirectory)/Parser_Query.cpp$(DependSuffix): Parser_Query.cpp
 
 $(IntermediateDirectory)/Parser_Query.cpp$(PreprocessSuffix): Parser_Query.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Parser_Query.cpp$(PreprocessSuffix)Parser_Query.cpp
+
+$(IntermediateDirectory)/schema_1.cpp$(ObjectSuffix): schema_1.cpp $(IntermediateDirectory)/schema_1.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/ankifor/Documents/CPP/DBI_5/schema_1.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/schema_1.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/schema_1.cpp$(DependSuffix): schema_1.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/schema_1.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/schema_1.cpp$(DependSuffix) -MM schema_1.cpp
+
+$(IntermediateDirectory)/schema_1.cpp$(PreprocessSuffix): schema_1.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/schema_1.cpp$(PreprocessSuffix)schema_1.cpp
+
+$(IntermediateDirectory)/Types.cpp$(ObjectSuffix): Types.cpp $(IntermediateDirectory)/Types.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/ankifor/Documents/CPP/DBI_5/Types.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Types.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Types.cpp$(DependSuffix): Types.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/Types.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/Types.cpp$(DependSuffix) -MM Types.cpp
+
+$(IntermediateDirectory)/Types.cpp$(PreprocessSuffix): Types.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Types.cpp$(PreprocessSuffix)Types.cpp
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)

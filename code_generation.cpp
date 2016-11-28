@@ -27,22 +27,7 @@ struct RelPredicate {
 	bool operator()(const Schema::Relation& r) const { return r.name == name; }
 };
 
-class Name_Generator {
-	unordered_map<string,size_t> used_names;
-public:
-	string request_name(const string& suggested, bool with_number) {
-		auto it = used_names.find(suggested);
-		size_t num = 0;
-		if (it == used_names.end()) {
-			num = 0;
-			used_names.insert(make_pair(suggested,num));
-		} else {
-			num = ++it->second;
-			with_number = true;
-		}
-		return suggested + (with_number? to_string(num) : "");
-	}
-} name_generator;
+extern Name_Generator name_generator;
 
 
 //void remove_not_required_fields(vector<Field_Unit>& produced, const vector<Field_Unit>& required) {
@@ -92,9 +77,10 @@ const Schema::Relation::Attribute* Context::getAttr(const Field_Unit& fu) const 
 //==============================================================================
 // OperatorScan
 //==============================================================================
-OperatorScan::OperatorScan(const Context* context, stringstream& out, string tabname) 
+OperatorScan::OperatorScan(const Context* context, stringstream& out, const string& tabname, const string& db_name) 
 	: OperatorUnary(context,out)
 	, tabname(tabname) 
+	, db_name(db_name)
 {
 	tid_name = name_generator.request_name("tid", true);
 }
@@ -105,13 +91,13 @@ void OperatorScan::computeProduced() {
 	
 	for (auto it = fields.begin(); it != fields.end(); ) {
 		auto it_tab = find_if(def.attributes.begin(), def.attributes.end(), AttrPredicate(it->field_name));
-		if (it_tab == def.attributes.end() || !it->tab_name.empty() && it->tab_name != tabname) {
+		if (it_tab == def.attributes.end() || (!it->tab_name.empty() && it->tab_name != tabname)) {
 			// not present in table
 			it = fields.erase(it);
 		} else {
 			it->tab_name = tabname;
 			it->type_name = type(*it_tab);
-			it->token = it->tab_name + "." + it->field_name + "[" + tid_name + "]";
+			it->token = db_name + "." + it->tab_name + "." + it->field_name + "[" + tid_name + "]";
 			++it;
 		}
 	}
@@ -121,7 +107,7 @@ void OperatorScan::computeProduced() {
 void OperatorScan::produce() {
 	const string tmplt = "for (Tid &tid; = 0;&tid; < &tab;.size(); ++&tid;)";
 	string tmp = ReplaceString(tmplt,"&tid;",tid_name);
-	ReplaceStringInPlace(tmp, "&tab;", tabname);
+	ReplaceStringInPlace(tmp, "&tab;", db_name + "." + tabname);
 	out << tmp << "{";
 	consumer->consume(this);
 	out << "}";

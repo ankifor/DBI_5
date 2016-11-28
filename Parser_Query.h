@@ -4,9 +4,12 @@
 
 #include <exception>
 #include <string>
+#include <vector>
+#include <utility>
 #include <memory>
 #include <sstream>
 #include "Schema.hpp"
+#include "code_generation.h"
 
 using namespace std;
 
@@ -23,13 +26,20 @@ public:
 
 struct Parser_Query {
 	istringstream in;
-	const Schema* schema;
+	Schema schema;
+	string db_name;
 
 	Schema::Relation* rel;
 
-	Parser_Query(const string& query_text, const Schema* schema) : in(query_text), schema(schema) {}
+	Parser_Query(const string& query_text, const Schema* pschema, const string& db_name) 
+		: in(query_text), schema(*pschema), db_name(db_name) {}
 	~Parser_Query() {};
 	void parse();
+	string generate();
 private:
 	void nextToken(unsigned line, const string& token, Schema& s);
+	
+	vector<Field_Unit> fields;
+	vector<string> tables;
+	vector<pair<string,string>> conditions;
 };

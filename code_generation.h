@@ -7,6 +7,23 @@
 
 using namespace std;
 
+class Name_Generator {
+	unordered_map<string,size_t> used_names;
+public:
+	string request_name(const string& suggested, bool with_number) {
+		auto it = used_names.find(suggested);
+		size_t num = 0;
+		if (it == used_names.end()) {
+			num = 0;
+			used_names.insert(make_pair(suggested,num));
+		} else {
+			num = ++it->second;
+			with_number = true;
+		}
+		return suggested + (with_number? to_string(num) : "");
+	}
+};
+
 struct Field_Unit {
 	string field_name;
 	string tab_name;
@@ -86,12 +103,13 @@ struct OperatorUnary : public Operator {
 };
 
 struct OperatorScan : public OperatorUnary {
-	OperatorScan(const Context* context, stringstream& out, string tabname);
+	OperatorScan(const Context* context, stringstream& out, const string& tabname, const string& db_name);
 	void consume(const Operator* caller) {assert(false);/*should never be called*/}
 	void produce();
 	
 protected:
 	string tabname;
+	string db_name;
 	string tid_name;
 	
 	void computeRequired() {fields = consumer->getRequired();}
@@ -150,6 +168,14 @@ struct OperatorBinary : public Operator {
 		this->left = left; left->setConsumer(this);
 		this->right=right; right->setConsumer(this);
 	}
+	virtual void setLeft(Operator* left) {
+		this->left = left; left->setConsumer(this);
+	}
+	virtual void setRight(Operator* right) {
+		this->right=right; right->setConsumer(this);
+	}
+	
+	
 	void consume(const Operator* caller) {
 		if (caller == left) {
 			consumeLeft();

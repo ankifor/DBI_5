@@ -19,6 +19,10 @@
     <File Name="Parser_Schema.cpp"/>
     <File Name="Parser_Query.h"/>
     <File Name="Parser_Query.cpp"/>
+    <File Name="schema_1.cpp"/>
+    <File Name="schema_1.hpp"/>
+    <File Name="Help.hpp"/>
+    <File Name="Types.cpp"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
@@ -36,9 +40,12 @@
       <Compiler Options="-g;-O0;-std=c++11;-Wall" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
       </Compiler>
-      <Linker Options="" Required="yes"/>
+      <Linker Options="-rdynamic" Required="yes">
+        <Library Value="rt"/>
+        <Library Value="dl"/>
+      </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="/home/ankifor/Documents/CPP/DB_data/schema1.sql /home/ankifor/Documents/CPP/DB_data query_1" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="/home/ankifor/Documents/CPP/DB_data/schema1.sql /home/ankifor/Documents/CPP/DBI_5 /home/ankifor/Documents/CPP/DB_data" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>

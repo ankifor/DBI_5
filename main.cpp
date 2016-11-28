@@ -1,112 +1,138 @@
 #include <iostream>
 #include <memory>
 #include <cstdio>
+#include <cstdlib>
 #include <sstream>
+#include <dlfcn.h>
+#include <regex>
 #include "Schema.hpp"
 #include "Parser_Schema.hpp"
 #include "Parser_Query.h"
 #include "code_generation.h"
-#include <regex>
+#include "schema_1.hpp"
 
 using namespace std;
-//extern Table_warehouse warehouse;
-//extern Table_district district;
-//extern Table_customer customer;
-//extern Table_history history;
-//extern Table_neworder neworder;
-//extern Table_order order;
-//extern Table_orderline orderline;
-//extern Table_item item;
-//extern Table_stock stock;
-string create_query(Schema* schema) {
-	Context context(*schema);
-	stringstream out;
-	
-	out << "#include \"Types.hpp\""   << endl;
-	out << "#include \"schema_1.hpp\""   << endl;
-	out << "#include <iostream>"      << endl;
-	out << "#include <unordered_map>" << endl;
-	out << "using namespace std;"     << endl;
-	out << "bool pred(const Varchar<16>& s) {return s.len > 0 && s.value[0]=='B';}";
-	//out << "bool pred1(const Integer& a0, const Varchar<10>& a1) {return a0>=3 || (a1.len>0 && a1.value[0]=='2');}";
-	out << "void run_query() {" << endl;
-	
-	OperatorScan scanCust(&context, out, "customer");
-//and c_id = 322
-//and c_w_id = 1
-//and c_d_id = 1
-	OperatorSelect select(&context, out, {"pred",{
-		{"c_last"}
-	}});
-	
-	OperatorScan scanOrder(&context, out, "order");
-	OperatorHashJoin join1(&context, out, 
-		 {{"c_w_id"},{"c_d_id"},{"c_id"  }}
-		,{{"o_w_id"},{"o_d_id"},{"o_c_id"}}
-	);
-	
-	OperatorScan scanOrdeline(&context, out, "orderline");
-	OperatorHashJoin join2(&context, out, 
-		 {{"o_w_id" },{"o_d_id" },{"o_id"   }}
-		,{{"ol_w_id"},{"ol_d_id"},{"ol_o_id"}}
-	);
-	
-	OperatorProjection proj(&context, out, {
-		 {"c_first"}
-		,{"c_last"}
-		,{"o_all_local"}
-		,{"ol_amount"}
-	});
 
-	OperatorPrint print(&context, out);
 
-	print.setInput(&proj);
-	proj.setInput(&join2);
-	join2.setInput(&join1, &scanOrdeline);
-	join1.setInput(&select, &scanOrder);
-	select.setInput(&scanCust);
+Name_Generator name_generator;
 
-	print.produce();
+struct Database db;
 
-	out << "}" << endl;
-	return out.str();
+static void read_data(const string& path)
+{
+	ifstream in;
+
+	in.open(path + "tpcc_warehouse.tbl");
+	db.warehouse.read_from_file(in);
+	in.close();
+
+	in.open(path + "tpcc_district.tbl");
+	db.district.read_from_file(in);
+	in.close();
+
+	in.open(path + "tpcc_customer.tbl");
+	db.customer.read_from_file(in);
+	in.close();
+
+	in.open(path + "tpcc_history.tbl");
+	db.history.read_from_file(in);
+	in.close();
+
+	in.open(path + "tpcc_order.tbl");
+	db.order.read_from_file(in);
+	in.close();
+
+	in.open(path + "tpcc_neworder.tbl");
+	db.neworder.read_from_file(in);
+	in.close();
+
+	in.open(path + "tpcc_orderline.tbl");
+	db.orderline.read_from_file(in);
+	in.close();
+
+	in.open(path + "tpcc_item.tbl");
+	db.item.read_from_file(in);
+	in.close();
+
+	in.open(path + "tpcc_stock.tbl");
+	db.stock.read_from_file(in);
+	in.close();
 }
-
-
 
 int main(int argc, char* argv[]) {
 	if (argc != 4) {
 		cerr << "usage: " << argv[0] 
 		     << " <schema file>" 
-		     << " <output dir>"
-		     << " <filename without extension>"
+		     << " <source folder>"
+			 << " <data dir>"
 		     << endl
 		     << argc << endl;
 		return -1;
 	}
 	
-	Parser_Schema p(argv[1]);
+	string schema_path = string(argv[1],strlen(argv[1]));
+	string source_path = string(argv[2],strlen(argv[2])) + "/";
+	string path_data = string(argv[3],strlen(argv[3])) + "/";
 	
+	cout << "reading db from '" << path_data << "'..." << endl;
+	read_data(path_data);
+	
+	cout << "parsing schema from'" << schema_path << "'..." << endl;
+	Parser_Schema p(schema_path);
+	unique_ptr<Schema> schema;
 	try {
-		unique_ptr<Schema> schema = p.parse();
-		string tmp = "";
-		getline(cin, tmp);
-		Parser_Query q(tmp, schema.get());
-
-		q.parse();
-		
-		//ofstream out;
-
-		//string path = string(argv[2],strlen(argv[2])) + "/";
-		//string name = string(argv[3],strlen(argv[3]));
-		
-		
-		//out.open(path  + name + ".cpp");
-		//out << create_query(schema.get());
-		//out.close();		
-		
+		schema = p.parse();
 	} catch (ParserError& e) {
 		cerr << e.what() << endl;
+		exit(1);
+	}
+	
+	string input_string = "";
+	ofstream out;
+	string cpp_query = source_path + "query_1.cpp";
+	string cpp_types = source_path + "Types.cpp";
+	string cpp_schema = source_path + "schema_1.cpp";
+	string so_query = source_path + "query_1.so";
+	string compilation_command = "g++ "
+		+ cpp_query + " " + cpp_types + " " + cpp_schema + " "
+		+ " -std=c++11 -O3 -fPIC -shared -rdynamic -o "
+		+ so_query
+	;
+	while (true) {
+		try {
+			cout << "#";
+			getline(cin, input_string);
+			if (input_string == "quit") break;
+			if (input_string.empty()) continue;
+			
+			Parser_Query q(input_string, schema.get(), "db");
+			q.parse();
+			
+			out.open(cpp_query, ios_base::out);
+			out << q.generate();
+			out.close();
+			//compiling
+			int res  = system(compilation_command.c_str());
+			if (res != 0) throw runtime_error("g++ exited with error " + to_string(res));
+			//load lib
+			void* handle=dlopen(so_query.c_str(),RTLD_NOW);
+			if (!handle) throw runtime_error(dlerror());
+			//get function handler
+			auto fn=reinterpret_cast<void (*)(const Database&)>(dlsym(handle, "run_query"));
+			if (!fn) throw runtime_error(dlerror());
+			//run function
+			fn(db);
+			//close lib
+			if (dlclose(handle)) throw runtime_error(dlerror());
+			
+		} catch (ParserQueryError& e) {
+			cerr << e.what() << endl;
+			continue;
+		} catch (runtime_error& e) {
+			cerr << e.what() << endl;
+			exit(1);
+		}
+		
 	}
 	return 0;
 }
