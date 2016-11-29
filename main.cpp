@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
 		try {
 			cout << "#";
 			getline(cin, input_string);
-			transform(input_string.begin(), input_string.end(), input_string.begin(), ::tolower);
+			//transform(input_string.begin(), input_string.end(), input_string.begin(), ::tolower);
 			if (input_string == "quit" || input_string == "exit") break;
 			if (input_string.empty()) continue;
 			//parse query
